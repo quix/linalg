@@ -10,6 +10,21 @@ DLEXT = Config::CONFIG["DLEXT"]
 
 # developer use only
 module LinalgPackager
+   include FileUtils
+
+   module Ext
+      def self.each
+         [
+            "ext/lapack",
+            "ext/linalg",
+         ].each { |dir|
+            Dir.chdir(dir) { |path|
+               yield path
+            }
+         }
+      end
+   end
+
    def _archive(pkgdir, type)
       filename = "#{pkgdir}.#{type}"
       case type
@@ -25,28 +40,39 @@ module LinalgPackager
 
    def _release(pkgdir, ziptype)
       Dir.chdir("..") {
-         FileUtils.rm_rf pkgdir
-         FileUtils.cp_r "linalg", pkgdir
-         FileUtils.rm_rf(Dir.glob("#{pkgdir}/**/CVS") +
-                            Dir.glob("#{pkgdir}/**/.svn"))
+         rm_rf pkgdir
+         cp_r "linalg", pkgdir
+         rm_rf(Dir.glob("#{pkgdir}/**/CVS") +
+               Dir.glob("#{pkgdir}/**/.svn") +
+               ["#{pkgdir}/.git"])
          _archive(pkgdir, ziptype)
-         FileUtils.rm_rf pkgdir
+         rm_rf pkgdir
       }
    end
 
    def _release_bin(pkgdir, ziptype)
       distclean
+
+      # ok I'm lazy
+      if RUBY_PLATFORM =~ %r!darwin! and ENV["USER"] == "jlawrence"
+         Ext.each { |ext|
+            g2c_h = "usr/lib/gcc/i686-apple-darwin8.8.1/3.4.0/include/g2c.h"
+            cp "#{ENV['HOME']}/usr/lib/libg2c.a", "."
+            cp "#{ENV['HOME']}/#{g2c_h}", "."
+         }
+      end
+
       config
       make
       doc
-      FileUtils.mv "ext/lapack/lapack.#{DLEXT}", "."
-      FileUtils.mv "ext/linalg/linalg.#{DLEXT}", "."
+      mv "ext/lapack/lapack.#{DLEXT}", "."
+      mv "ext/linalg/linalg.#{DLEXT}", "."
       distclean(false)
-      FileUtils.mv "lapack.#{DLEXT}", "ext/lapack"
-      FileUtils.mv "linalg.#{DLEXT}", "ext/linalg"
+      mv "lapack.#{DLEXT}", "ext/lapack"
+      mv "linalg.#{DLEXT}", "ext/linalg"
       _release(pkgdir, ziptype)
-      FileUtils.rm "ext/lapack/lapack.#{DLEXT}"
-      FileUtils.rm "ext/linalg/linalg.#{DLEXT}"
+      rm "ext/lapack/lapack.#{DLEXT}"
+      rm "ext/linalg/linalg.#{DLEXT}"
       distclean
    end
 
@@ -68,20 +94,9 @@ end
 
 module Main
    include LinalgPackager
-   extend self
+   include FileUtils
 
-   module Ext
-      def self.each
-         [
-            "ext/lapack",
-            "ext/linalg",
-         ].each { |dir|
-            Dir.chdir(dir) { |path|
-               yield path
-            }
-         }
-      end
-   end
+   extend self
 
    def doc
       rdoc_files = [
@@ -99,22 +114,25 @@ module Main
          'README',
       ]
       
-      FileUtils.rm_rf "doc"
+      rm_rf "doc"
       RDoc::RDoc.new.document(rdoc_files + ["--main", "README"])
    end
 
    def distclean(rmdoc = true)
       Ext.each { |path|
          puts "distclean #{path}"
-         system("#{$make} distclean")
+         if File.exists? "Makefile"
+            system("#{$make} distclean")
+         end
       }
-      FileUtils.rm_rf "doc" if rmdoc
-      FileUtils.rm_f Dir.glob("*.gem")
-      FileUtils.rm_f Dir.glob("*~")
-      FileUtils.rm_f Dir.glob("**/*~")
-      FileUtils.rm_rf Dir.glob("ext/**/conftest.dSYM")
-      FileUtils.rm_f Dir.glob("ext/**/g2c.h")
-      FileUtils.rm_f Dir.glob("ext/**/libg2c.a")
+      rm_rf "doc" if rmdoc
+      rm_f Dir.glob("*.gem")
+      rm_f Dir.glob("*~")
+      rm_f Dir.glob("**/*~")
+      rm_rf Dir.glob("ext/**/conftest.dSYM")
+      rm_f Dir.glob("ext/**/g2c.h")
+      rm_f Dir.glob("ext/**/libg2c.a")
+      rm_f Dir.glob("**/mkmf.log")
    end
 
    def make
@@ -174,7 +192,7 @@ module Main
             end
          end
          spec.each { |f|
-            FileUtils.mkdir_p File.dirname(f[1]), :mode => 0755
+            mkdir_p File.dirname(f[1]), :mode => 0755
             FileUtils.install f[0], f[1], :mode => f[2]
             log.puts "install #{f[0]} --> #{f[1]}"
          }
@@ -196,7 +214,7 @@ module Main
          sitelibdir + "/linalg/",
          "InstalledFiles",
       ].each { |f|
-         FileUtils.rm_rf(f)
+         rm_rf(f)
          puts "remove #{f}"
       }
    end
@@ -222,14 +240,16 @@ module Main
 end
 
 module LinalgGem
+   include FileUtils
+
    def makegembin
-      FileUtils.cp "ext/lapack/lapack.#{DLEXT}", "lib"
-      FileUtils.cp "ext/linalg/linalg.#{DLEXT}", "lib"
-      FileUtils.mv "doc", "doc-save"
+      cp "ext/lapack/lapack.#{DLEXT}", "lib"
+      cp "ext/linalg/linalg.#{DLEXT}", "lib"
+      mv "doc", "doc-save"
       distclean
-      FileUtils.mv "doc-save", "doc"
+      mv "doc-save", "doc"
       _makegem
-      FileUtils.rm_f Dir.glob("lib/*.#{DLEXT}")
+      rm_f Dir.glob("lib/*.#{DLEXT}")
    end
 
    def makegem

@@ -6,6 +6,8 @@ require 'mkmf'
 
 LINALG_VERSION = "0.3.2"
 
+DLEXT = Config::CONFIG["DLEXT"]
+
 # developer use only
 module LinalgPackager
    def _archive(pkgdir, type)
@@ -37,14 +39,14 @@ module LinalgPackager
       config
       make
       doc
-      FileUtils.mv "ext/lapack/lapack.so", "."
-      FileUtils.mv "ext/linalg/linalg.so", "."
+      FileUtils.mv "ext/lapack/lapack.#{DLEXT}", "."
+      FileUtils.mv "ext/linalg/linalg.#{DLEXT}", "."
       distclean(false)
-      FileUtils.mv "lapack.so", "ext/lapack"
-      FileUtils.mv "linalg.so", "ext/linalg"
+      FileUtils.mv "lapack.#{DLEXT}", "ext/lapack"
+      FileUtils.mv "linalg.#{DLEXT}", "ext/linalg"
       _release(pkgdir, ziptype)
-      FileUtils.rm "ext/lapack/lapack.so"
-      FileUtils.rm "ext/linalg/linalg.so"
+      FileUtils.rm "ext/lapack/lapack.#{DLEXT}"
+      FileUtils.rm "ext/linalg/linalg.#{DLEXT}"
       distclean
    end
 
@@ -151,8 +153,8 @@ module Main
       sitearchdir = Config::CONFIG["sitearchdir"]
 
       spec = [
-         ["ext/linalg/linalg.so", sitearchdir + "/linalg.so", 0755],
-         ["ext/lapack/lapack.so", sitearchdir + "/lapack.so", 0755],
+         ["ext/linalg/linalg.#{DLEXT}", sitearchdir + "/linalg.#{DLEXT}", 0755],
+         ["ext/lapack/lapack.#{DLEXT}", sitearchdir + "/lapack.#{DLEXT}", 0755],
          ["lib/linalg.rb", sitelibdir + "/linalg.rb", 0644],
       ] + Dir.glob("lib/linalg/*.rb").map { |f|
          [f, sitelibdir + "/linalg/" + File.basename(f), 0644]
@@ -184,8 +186,8 @@ module Main
       sitelibdir = Config::CONFIG["sitelibdir"]
       sitearchdir = Config::CONFIG["sitearchdir"]
       [
-         sitearchdir + "/lapack.so",
-         sitearchdir + "/linalg.so",
+         sitearchdir + "/lapack.#{DLEXT}",
+         sitearchdir + "/linalg.#{DLEXT}",
          sitelibdir + "/linalg.rb",
          sitelibdir + "/linalg/",
          "InstalledFiles",
@@ -201,8 +203,8 @@ module Main
    end
 
    def auto
-      unless FileTest.exist?("ext/lapack/lapack.so") and
-            FileTest.exist?("ext/linalg/linalg.so")
+      unless FileTest.exist?("ext/lapack/lapack.#{DLEXT}") and
+            FileTest.exist?("ext/linalg/linalg.#{DLEXT}")
          config
          make
          doc
@@ -217,13 +219,13 @@ end
 
 module LinalgGem
    def makegembin
-      FileUtils.cp "ext/lapack/lapack.so", "lib"
-      FileUtils.cp "ext/linalg/linalg.so", "lib"
+      FileUtils.cp "ext/lapack/lapack.#{DLEXT}", "lib"
+      FileUtils.cp "ext/linalg/linalg.#{DLEXT}", "lib"
       FileUtils.mv "doc", "doc-save"
       distclean
       FileUtils.mv "doc-save", "doc"
       _makegem
-      FileUtils.rm_f Dir.glob("lib/*.so")
+      FileUtils.rm_f Dir.glob("lib/*.#{DLEXT}")
    end
 
    def makegem

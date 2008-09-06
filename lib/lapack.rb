@@ -4,7 +4,9 @@
 # See LICENSE
 #
 
-require 'lapack.so'
+require 'rbconfig'
+
+require "lapack.#{Config::CONFIG['DLEXT']}"
 
 #
 # Simple, strongly-typed bindings to LAPACK.

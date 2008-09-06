@@ -71,7 +71,7 @@ require "lapack.#{Config::CONFIG['DLEXT']}"
 # structure for interacting with the +Lapack+ module.  All +Lapack+
 # requires is that the appropriate to_FORTRANTYPE_ptr be implemented
 # on each parameter passed.  From this perspective it is questionable
-# whether +Lapack+ should even be bundled the +linalg+ package.
+# whether +Lapack+ should even be bundled with the +linalg+ package.
 #
 # +DMatrix+, for example, is just a class which implements
 # the <tt>to_doublereal_ptr</tt> method, and the entirety of its

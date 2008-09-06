@@ -2,7 +2,7 @@
 = Linalg - Ruby Linear Algebra Library
 
 A Fortran-based linear algebra package.
-----
+
 === Features
 
 Major features:
@@ -25,7 +25,6 @@ Minor features:
 * Determinant
 * 2-norm, 1-norm, infinity-norm, Frobenius norm
 
-----
 === Getting Started
 
 Everything you need to know is in:
@@ -34,7 +33,6 @@ Everything you need to know is in:
 
 and this README.
 
-----
 === Tutorial
 
   $ irb
@@ -389,12 +387,9 @@ And now the fun stuff <tt>  =)</tt>
    -0.000000  0.000000  1.000000  0.000000
    -0.000000 -0.000000  0.000000  1.000000
 
-----
-
 See the Linalg::DMatrix documentation for more info.  The various
 tests in test/ are also instructive.
 
-----
 === Notes
 
 I have intentionally left out the methods +column_size+ and +row_size+
@@ -412,7 +407,6 @@ If you have used +narray+, note that +linalg+ uses the mathematical
 definition of <em>rank</em>, which is equal to the number of columns
 only in the case of a nonsingular square matrix.
 
-----
 === ToDo
 
 There are actually four internal matrix types: +SMatrix+, +DMatrix+,
@@ -428,7 +422,6 @@ implement.
 The other issue is that refactoring will make the +rdoc+ output less
 desirable, scattering methods away from their classes.
 
-----
 === Background
 
 It started when I needed eigenvectors of a general matrix.  I grabbed
@@ -463,7 +456,6 @@ library.  But for now, +linalg+ exists because the LAPACK routines
 were "right there" in front of me, I needed them, and it was easy to
 call them.
 
-----
 === Details
 
 Author::   James M. Lawrence <quixoticsycophant@gmail.com>
@@ -471,7 +463,6 @@ Requires:: Ruby 1.8.1 or later
 License::  Copyright (c) 2004-2008 James M. Lawrence.
            Released under the MIT license.
 
-----
 === License
 
 Copyright (c) 2004-2008 James M. Lawrence

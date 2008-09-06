@@ -95,11 +95,12 @@ module Main
       } + [
          'ext/linalg/dmatrix.c',
          'lib/linalg/dmatrix/alias.rb',
+         'INSTALL',
          'README',
       ]
       
       FileUtils.rm_rf "doc"
-      RDoc::RDoc.new.document(rdoc_files)
+      RDoc::RDoc.new.document(rdoc_files + ["--main", "README"])
    end
 
    def distclean(rmdoc = true)

@@ -1,0 +1,12 @@
+
+= Linalg Changes
+
+=== Version 1.0.0
+
+* Use g2c instead of f2c.  Contributed by Luis Parravicini.
+* Use Config['DLEXT'].  Fixes Mac ".bundle" issue.
+* Minor installer cleanups.
+
+=== Version 0.3.2
+
+* Initial release.

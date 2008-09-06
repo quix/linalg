@@ -10,7 +10,7 @@
 
 #include "ruby.h"
 
-#include <f2c.h>
+#include <g2c.h>
 
 #include "linalg.h"
 #include "dcomplex.h"

@@ -13,8 +13,8 @@ require 'fileutils'
 #
 ####################################################
 
-unless have_header("f2c.h") and
-      have_library("f2c") and
+unless have_header("g2c.h") and
+      have_library("g2c") and
       have_library("blas") and
       have_library("lapack")
    puts "A full LAPACK installation was not found."
@@ -31,6 +31,8 @@ $CFLAGS += " -Wall" if CONFIG["CC"] == "gcc"
 
 # why doesn't $INCFLAGS work
 $CFLAGS += " -I../lapack/include"
+
+$CFLAGS += ' -I.. -include g2c_typedefs.h'
 
 ####################################################
 #

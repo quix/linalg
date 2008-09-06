@@ -46,7 +46,7 @@ require 'lapack.so'
 #                c,       # calls c.to_doublereal_ptr
 #                ldc)     # calls ldc.to_integer_ptr
 # 
-# The type names are taken directly from f2c.h.
+# The type names are taken directly from g2c.h.
 #
 #    real
 #    doublereal
@@ -78,7 +78,7 @@ require 'lapack.so'
 # For C extension writers: While C's +double+, for example, is almost
 # surely the same as +doublereal+, to ensure portability it is
 # generally good practice to use the aforementioned types found in the
-# f2c.h header on your system.
+# g2c.h header on your system.
 #
 #
 module Lapack

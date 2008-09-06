@@ -11,7 +11,7 @@
 #include <stdlib.h>
 #include <math.h>
 
-#include <f2c.h>
+#include <g2c.h>
 
 #include "ruby.h"
 

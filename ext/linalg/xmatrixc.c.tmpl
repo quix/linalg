@@ -1,0 +1,138 @@
+/*
+ * Copyright (c) 2004 by James M. Lawrence
+ *
+ * See LICENSE
+ *
+ */
+
+#include "CLASSLOWER.h"
+
+FORTRANTYPE CLASSLOWER_FORTRANTYPE_1 = { 1.0, 0.0 } ;
+FORTRANTYPE CLASSLOWER_FORTRANTYPE_neg_1 = { -1.0, 0.0 } ;
+FORTRANTYPE CLASSLOWER_FORTRANTYPE_0 = { 0.0, 0.0 } ;
+
+static integer integer_1 = 1 ;
+
+FORTRANTYPE CLASSUPPER_dot(CLASSUPPER* a, CLASSUPPER* b)
+{
+    FORTRANTYPE ret ;
+    xdotc_(&ret,
+           &a->vsize,
+           a->data,
+           &integer_1,
+           b->data,
+           &integer_1) ;
+    return ret ;
+}
+
+
+CLASSUPPER* CLASSUPPER_rand(CLASSUPPER* a)
+{
+    integer i ;
+    integer size = a->vsize*a->hsize ;
+
+    for( i = 0 ; i != size ; ++i )
+    {
+        (a->data[i]).r =
+            2.0*(((double)rand())/(RAND_MAX)) - 1.0 ;
+        (a->data[i]).i =
+            2.0*(((double)rand())/(RAND_MAX)) - 1.0 ;
+    }
+
+    return a ;
+}
+
+
+VALUE rb_CLASSLOWER_within( VALUE self, VALUE repsilon, VALUE other )
+{
+    CLASSUPPER* a ;
+    CLASSUPPER* b ;
+    FORTRANTYPE* pa ;
+    FORTRANTYPE* pb ;
+    FORTRANTYPE* aend ;
+    double epsilon ;
+    get_CLASSLOWER(a, self) ;
+    get_CLASSLOWER(b, other) ;
+
+    if( a->vsize != b->vsize ||
+        a->hsize != b->hsize )
+    {
+        raise_dim_error() ;
+    }
+
+    epsilon = NUM2DBL(repsilon) ;
+    
+    pa = a->data ;
+    pb = b->data ;
+    aend = pa + a->vsize*a->hsize ;
+    
+    for( ; pa != aend ; ++pa, ++pb )
+    {
+        if( fabs(pa->r - pb->r) > epsilon ||
+            fabs(pa->i - pb->i) > epsilon )
+        {
+            return Qfalse ;
+        }
+    }
+
+    return Qtrue ;
+}
+
+VALUE rb_CLASSLOWER_symmetric_private( VALUE self, VALUE repsilon )
+{
+    CLASSUPPER* a ;
+    double epsilon ;
+    
+    get_CLASSLOWER(a, self) ;
+    
+    if( a->vsize != a->hsize )
+    {
+        return Qfalse ;
+    }
+
+    epsilon = NUM2DBL(repsilon) ;
+
+    {
+        int i ;
+        int j ;
+
+        for( j = 0 ; j < a->hsize ; ++j )
+        {
+            for( i = j + 1 ; i < a->vsize ; ++i )
+            {
+                if( fabs(a->data[i + j*a->vsize].r -
+                         a->data[j + i*a->vsize].r) > epsilon ||
+                    fabs(a->data[i + j*a->vsize].i -
+                         a->data[j + i*a->vsize].i) > epsilon )
+                {
+                    return Qfalse ;
+                }
+            }
+        }
+    }
+
+    return Qtrue ;
+}
+
+VALUE rb_CLASSLOWER_div(VALUE self, VALUE rb)
+{
+    CLASSUPPER* a ;
+    CLASSUPPER* c ;
+    FORTRANTYPE b ;
+    FORTRANTYPE s ;
+    doublereal bottom ;
+    VALUE rc ;
+    
+    b = RUBY2FORTRAN(rb) ;
+
+    get_CLASSLOWER(a, self) ;
+    c = CLASSUPPER_clone(a) ;
+    rc = wrap_CLASSLOWER(c) ;
+    
+    bottom = b.r*b.r + b.i*b.i ;
+    s.r = b.r/bottom ;
+    s.i = -b.i/bottom ;
+    
+    CLASSUPPER_mul_scalar(c, s) ;
+    return rc ;
+}

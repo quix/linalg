@@ -1,0 +1,20 @@
+
+* diagonal mult
+* [SCZ]Matrix functionality of DMatrix
+* hessenberg
+* qz
+* balance
+* slyvester
+* expm etc
+* exception for lwork query?
+* qz?
+* lu solve?
+* chol solve?
+* hash()?
+* minor-to-minor replace for efficiency?
+* minor uses range?
+* dmatrix.rb some methods --> C ?
+* transpose flag?
+* symmetric flag?
+* specialize coerce?
+

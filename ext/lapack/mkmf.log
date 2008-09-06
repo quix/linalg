@@ -1,0 +1,11 @@
+have_header: checking for f2c.h... -------------------- no
+
+"gcc -E -I. -I/Users/jlawrence/usr/stow/ruby-1.8.7-p72/lib/ruby/1.8/i686-darwin9.4.0 -I.  -D_XOPEN_SOURCE -D_DARWIN_C_SOURCE   -g -O2 -pipe -fno-common    conftest.c -o conftest.i"
+conftest.c:1:17: error: f2c.h: No such file or directory
+checked program was:
+/* begin */
+1: #include <f2c.h>
+/* end */
+
+--------------------
+

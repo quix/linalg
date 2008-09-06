@@ -1,0 +1,77 @@
+/*
+ * Copyright (c) 2004 by James M. Lawrence
+ *
+ * See LICENSE
+ *
+ */
+
+#ifndef CLASSUPPER_H
+#define CLASSUPPER_H
+
+#include <stdlib.h>
+#include <math.h>
+#include <time.h>
+
+#include <f2c.h>
+
+#include "BLAS.h"
+#include "LAPACK.h"
+
+#include "ruby.h"
+
+#include "dcomplex.h"
+#include "scomplex.h"
+
+#include "linalg.h"
+
+/**************************************************
+ *
+ * CLASSUPPER
+ *
+ **************************************************/
+
+struct CLASSUPPER_
+{
+    integer vsize ;
+    integer hsize ;
+    FORTRANTYPE* data ;
+} ;
+
+typedef struct CLASSUPPER_ CLASSUPPER ;
+
+/**************************************************
+ *
+ * globals
+ *
+ **************************************************/
+
+extern FORTRANTYPE CLASSLOWER_FORTRANTYPE_1 ;
+extern FORTRANTYPE CLASSLOWER_FORTRANTYPE_neg_1 ;
+extern FORTRANTYPE CLASSLOWER_FORTRANTYPE_0 ;
+extern VALUE rb_cCLASSUPPER ;
+
+/**************************************************
+ *
+ * utils
+ *
+ **************************************************/
+
+#define get_CLASSLOWER(ptr, obj) Data_Get_Struct(obj, CLASSUPPER, ptr)
+#define wrap_CLASSLOWER(obj) Data_Wrap_Struct(rb_cCLASSUPPER, 0, CLASSUPPER_free, obj)
+
+/**************************************************
+ *
+ * cross-defs
+ *
+ **************************************************/
+
+FORTRANTYPE CLASSUPPER_dot(CLASSUPPER* a, CLASSUPPER* b) ;
+CLASSUPPER* CLASSUPPER_rand(CLASSUPPER* a) ;
+VALUE rb_CLASSLOWER_within( VALUE self, VALUE repsilon, VALUE other ) ;
+VALUE rb_CLASSLOWER_symmetric_private( VALUE self, VALUE repsilon ) ;
+VALUE rb_CLASSLOWER_div(VALUE self, VALUE rb) ;
+CLASSUPPER* CLASSUPPER_mul_scalar(CLASSUPPER* a, FORTRANTYPE s) ;
+CLASSUPPER* CLASSUPPER_clone(CLASSUPPER* m) ;
+void CLASSUPPER_free(CLASSUPPER* m) ;
+    
+#endif

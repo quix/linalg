@@ -1,0 +1,1630 @@
+/*
+ * Copyright (c) 2004 by James M. Lawrence
+ *
+ * See LICENSE
+ *
+ * Inspired by Rubikitch's +DMatrix+ class in +mathx+.
+ *
+ */
+
+#include "CLASSLOWER.h"
+
+/**************************************************
+ *
+ * globals
+ *
+ **************************************************/
+
+VALUE rb_cCLASSUPPER ;
+
+/**************************************************
+ *
+ * statics
+ *
+ **************************************************/
+
+static integer integer_1 = 1 ;
+
+/**************************************************
+ **************************************************
+ *
+ * CLASSUPPER core
+ *
+ **************************************************
+ **************************************************/
+
+/**************************************************
+ *
+ * init
+ *
+ **************************************************/
+
+void CLASSUPPER_init(CLASSUPPER* a, integer vsize, integer hsize)
+{
+    a->vsize = vsize ;
+    a->hsize = hsize ;
+    a->data = (FORTRANTYPE*)ALLOC_N(FORTRANTYPE, vsize*hsize) ;
+}
+
+/**************************************************
+ *
+ * constructors
+ *
+ **************************************************/
+
+CLASSUPPER* CLASSUPPER_new(integer vsize, integer hsize)
+{
+    CLASSUPPER* a = (CLASSUPPER*)ALLOC(CLASSUPPER) ;
+    a->data = (FORTRANTYPE*)ALLOC_N(FORTRANTYPE, vsize*hsize) ;
+    a->vsize = vsize ;
+    a->hsize = hsize ;
+    return a ;
+}
+
+CLASSUPPER* CLASSUPPER_clone(CLASSUPPER* a)
+{
+    CLASSUPPER* dup = CLASSUPPER_new(a->vsize, a->hsize) ; 
+    integer size = a->vsize*a->hsize ;
+    xcopy_(&size , a->data, &integer_1, dup->data, &integer_1) ;
+    return dup ;
+}
+
+/**************************************************
+ *
+ * destructor
+ *
+ **************************************************/
+
+void CLASSUPPER_free(CLASSUPPER* a)
+{
+    free(a->data) ;
+    free(a) ;
+}
+
+/**************************************************
+ *
+ * assignment
+ *
+ **************************************************/
+
+CLASSUPPER* CLASSUPPER_assign(CLASSUPPER* c, CLASSUPPER* a)
+{
+    integer size = a->vsize*a->hsize ;
+
+    xcopy_(&size,
+           a->data,
+           &integer_1,
+           c->data,
+           &integer_1) ;
+
+    return c ;
+}
+
+CLASSUPPER* CLASSUPPER_swap(CLASSUPPER* c, CLASSUPPER* a)
+{
+    CLASSUPPER tmp = *c ;
+    *c = *a ;
+    *a = tmp ;
+    return c ;
+}
+
+/**************************************************
+ *
+ * fillers
+ *
+ **************************************************/
+
+CLASSUPPER* CLASSUPPER_fill(CLASSUPPER* a, FORTRANTYPE value)
+{
+    FORTRANTYPE* p = a->data ;
+    FORTRANTYPE* end = p + a->vsize*a->hsize ;
+
+    for( ; p != end ; ++p )
+    {
+        *p = value ;
+    }
+
+    return a ;
+}
+
+CLASSUPPER* CLASSUPPER_scalar_diagonal(CLASSUPPER* c, FORTRANTYPE s)
+{
+    integer i ;
+
+    CLASSUPPER_fill(c, CLASSLOWER_FORTRANTYPE_0) ;
+
+    for( i = 0 ; i != c->vsize ; ++i )
+    {
+        c->data[i + i*c->vsize] = s ;
+    }
+
+    return c ;
+}
+
+CLASSUPPER* CLASSUPPER_identity(CLASSUPPER* a)
+{
+    return CLASSUPPER_scalar_diagonal(a, CLASSLOWER_FORTRANTYPE_1) ;
+}
+
+/**************************************************
+ *
+ * operations
+ *
+ **************************************************/
+
+CLASSUPPER* CLASSUPPER_mul(CLASSUPPER* c, CLASSUPPER* a, CLASSUPPER* b)
+{
+    xgemm_("N",
+           "N",
+           &a->vsize,
+           &b->hsize,
+           &a->hsize,
+           &CLASSLOWER_FORTRANTYPE_1,
+           a->data,
+           &a->vsize,
+           b->data,
+           &b->vsize,
+           &CLASSLOWER_FORTRANTYPE_0,
+           c->data,
+           &c->vsize) ;
+
+    return c ;
+}
+
+CLASSUPPER* CLASSUPPER_mul_scalar(CLASSUPPER* a, FORTRANTYPE s)
+{
+    integer n = a->vsize*a->hsize ;
+
+    xscal_(&n,
+           &s,
+           a->data,
+           &integer_1) ;
+
+    return a ;
+}
+
+CLASSUPPER* CLASSUPPER_plus(CLASSUPPER* a, CLASSUPPER* b)
+{
+    integer n = a->vsize*a->hsize ;
+
+    xaxpy_(&n,
+           &CLASSLOWER_FORTRANTYPE_1,
+           b->data,
+           &integer_1,
+           a->data,
+           &integer_1) ;
+
+    return a ;
+}
+
+CLASSUPPER* CLASSUPPER_minus(CLASSUPPER* a, CLASSUPPER* b)
+{
+    integer n = a->vsize*a->hsize ;
+
+    xaxpy_(&n,
+           &CLASSLOWER_FORTRANTYPE_neg_1,
+           b->data,
+           &integer_1,
+           a->data,
+           &integer_1) ;
+
+    return a ;
+}
+
+CLASSUPPER* CLASSUPPER_transpose( CLASSUPPER* c, CLASSUPPER* a )
+{
+    if( a->vsize > a->hsize )
+    {
+        int j ;
+        
+        for( j = 0 ; j != a->hsize ; ++j )
+        {
+            xcopy_(&a->vsize,
+                   &a->data[j*a->vsize],
+                   &integer_1,
+                   &c->data[j],
+                   &c->vsize) ;
+        }
+    }
+    else
+    {
+        int i ;
+        
+        for( i = 0 ; i != a->vsize ; ++i )
+        {
+            xcopy_(&a->hsize,
+                   &a->data[i],
+                   &a->vsize,
+                   &c->data[i*c->vsize],
+                   &integer_1) ;
+        }
+    }
+
+    return c ;
+}
+
+CLASSUPPER* CLASSUPPER_transpose_inplace( CLASSUPPER* a )
+{
+    if( a->vsize == 1 || a->hsize == 1 )
+    {
+        integer tmp = a->vsize ;
+        a->vsize = a->hsize ;
+        a->hsize = tmp ;
+    }
+    else
+    {
+        CLASSUPPER* dup = CLASSUPPER_clone(a) ;
+
+        integer tmp = a->vsize ;
+        a->vsize = a->hsize ;
+        a->hsize = tmp ;
+
+        CLASSUPPER_transpose(a, dup) ;
+
+        CLASSUPPER_free(dup) ;
+    }
+
+    return a ;
+}
+
+CLASSUPPER* CLASSUPPER_minor( CLASSUPPER* c,
+                              CLASSUPPER* a,
+                              integer minor_i,
+                              integer minor_j,
+                              integer minor_vsize,
+                              integer minor_hsize )
+{
+    int j ;
+    
+    for( j = 0 ; j != minor_hsize ; ++j )
+    {
+        xcopy_(&minor_vsize,
+               &a->data[minor_i + (minor_j + j)*a->vsize],
+               &integer_1,
+               &c->data[j*minor_vsize],
+               &integer_1) ;
+    }
+
+    return c ;
+}
+
+CLASSUPPER* CLASSUPPER_replace_minor( CLASSUPPER* c,
+                                      integer minor_i,
+                                      integer minor_j,
+                                      CLASSUPPER* a )
+{
+    int j ;
+    
+    for( j = 0 ; j != a->hsize ; ++j )
+    {
+        xcopy_(&a->vsize,
+               &a->data[j*a->vsize],
+               &integer_1,
+               &c->data[minor_i + (minor_j + j)*c->vsize],
+               &integer_1) ;
+    }
+
+    return c ;
+}
+
+/**************************************************
+ **************************************************
+ *
+ * ruby interface
+ *
+ **************************************************
+ **************************************************/
+
+/**************************************************
+ *
+ * util
+ *
+ **************************************************/
+
+static integer num2size(VALUE val)
+{
+    integer n = NUM2INT(val) ;
+    if( n < 1 )
+    {
+        raise_dim_error() ;
+    }
+    return n ;
+}
+
+/**************************************************
+ *
+ * allocate
+ *
+ **************************************************/
+
+VALUE rb_CLASSLOWER_allocate( VALUE klass )
+{
+    CLASSUPPER* a ;
+    VALUE obj = Data_Make_Struct(klass,
+                                 CLASSUPPER,
+                                 0,
+                                 CLASSUPPER_free,
+                                 a) ;
+    return obj ;
+}
+
+/**************************************************
+ *
+ * constructors
+ *
+ **************************************************/
+
+/*
+ * call-seq: rows(array)
+ *
+ * Create a matrix using the elements of +array+ as rows.
+ *
+ *   CLASSUPPER.rows(array)
+ *
+ * is equivalent to
+ *
+ *   CLASSUPPER.new(array.size, array[0].size) { |i,j| array[i][j] }
+ *
+ * +DimensionError+ is raised if +array+ is not rectangular.
+ *
+ */
+VALUE rb_CLASSLOWER_s_rows( VALUE klass, VALUE array )
+{
+    int i ;
+    int j ;
+    int vsize ;
+    int hsize ;
+
+    VALUE* ptr ;
+    VALUE crow ;
+
+    CLASSUPPER* a = 0 ;
+    VALUE ra ;
+
+    if( TYPE(array) != T_ARRAY )
+    {
+        raise_bad_array() ;
+    }
+
+    ptr = RARRAY(array)->ptr ;
+    vsize = RARRAY(array)->len ;
+
+    if( vsize < 1 || TYPE(ptr[0]) != T_ARRAY )
+    {
+        raise_bad_array() ;
+    }
+    if( (hsize = RARRAY(ptr[0])->len) == 0 )
+    {
+        raise_bad_array() ;
+    }
+    
+    a = CLASSUPPER_new(vsize, hsize) ;
+    ra = wrap_CLASSLOWER(a) ;
+    
+    for( i = 0 ; i != vsize ; ++i )
+    {
+        crow = ptr[i] ;
+
+        if( TYPE(crow) != T_ARRAY )
+        {
+            raise_bad_array() ;
+        }
+
+        if( RARRAY(crow)->len != hsize )
+        {
+            raise_bad_array() ;
+        }
+
+        for( j = 0 ; j != hsize ; j++ )
+        {
+            a->data[i + j*a->vsize] = RUBY2FORTRAN(RARRAY(crow)->ptr[j]) ;
+        }
+    }
+
+    return ra ;
+}
+
+/*
+ * call-seq: rand(vsize, hsize)
+ *
+ * Create a matrix filled with random numbers between -1.0 and 1.0.
+ *
+ * Similar to
+ *
+ *   CLASSUPPER.new(vsize, hsize) { 2*rand - 1 }
+ *
+ * except uses <tt>rand()</tt> from <tt>stdlib.h</tt>
+ *
+ */
+VALUE rb_CLASSLOWER_s_rand(VALUE klass, VALUE rvsize, VALUE rhsize)
+{
+    CLASSUPPER* a = CLASSUPPER_new(num2size(rvsize),
+                                   num2size(rhsize)) ;
+
+    static int first = 1 ;
+    if( first )
+    {
+        srand(time(NULL)) ;
+        first = 0 ;
+    }
+    
+    CLASSUPPER_rand(a) ;
+    return wrap_CLASSLOWER(a) ;
+}
+
+/*
+ * call-seq: identity(n)
+ *
+ * Create an +n+ x +n+ identity matrix.
+ *
+ */
+VALUE rb_CLASSLOWER_s_identity(VALUE klass, VALUE rsize)
+{
+    int size = num2size(rsize) ;
+    CLASSUPPER* a = CLASSUPPER_new(size, size) ;
+    CLASSUPPER_identity(a) ;
+    return wrap_CLASSLOWER(a) ;
+}
+
+/*
+ * call-seq: clone
+ *
+ * Deep copy
+ *
+ */
+VALUE rb_CLASSLOWER_clone(VALUE self)
+{
+    CLASSUPPER* a ;
+    get_CLASSLOWER(a, self) ;
+    return wrap_CLASSLOWER(CLASSUPPER_clone(a)) ;
+}
+
+/*
+ * call-seq:
+ *   diagonal(array)
+ *   diagonal(vector)
+ *   diagonal(n, scalar)
+ *   diagonal(n) { |i| ... }
+ *
+ * In the first form, create a diagonal matrix with the elements of
+ * +array+ along the diagonal.  The second form is like the first but
+ * using elements of the column vector +vector+.  In the third form,
+ * create an +n+ x +n+ diagonal matrix with diagonal elements of value
+ * +scalar+.  In the fourth form, each element <tt>m[i,i]</tt> gets
+ * the block result.
+ *
+ */
+VALUE rb_CLASSLOWER_s_diagonal(int argc, VALUE* argv, VALUE klass)
+{
+    CLASSUPPER* a ;
+    VALUE ra ;
+    VALUE rb ;
+    VALUE rscalar ;
+    int scan = rb_scan_args(argc, argv, "11", &rb, &rscalar) ;
+
+    if( scan == 1 )
+    {
+        if( rb_block_given_p() )
+        {
+            int i ;
+            int size = num2size(rb) ;
+            a = CLASSUPPER_new(size, size) ;
+            ra = wrap_CLASSLOWER(a) ;
+            
+            VALUE result ;
+        
+            CLASSUPPER_fill(a, CLASSLOWER_FORTRANTYPE_0) ;
+            
+            for( i = 0 ; i != size ; ++i )
+            {
+                result = rb_yield(INT2FIX(i)) ;
+                a->data[i + i*a->vsize] = RUBY2FORTRAN(result) ;
+            }
+        }
+        else if( rb_obj_is_kind_of(rb, rb_cCLASSUPPER) )
+        {
+            int i ;
+            CLASSUPPER* b ;
+
+            get_CLASSLOWER(b, rb) ;
+            
+            if( b->hsize != 1 )
+            {
+                raise_dim_error() ;
+            }
+            
+            a = CLASSUPPER_new(b->vsize, b->vsize) ;
+            ra = wrap_CLASSLOWER(a) ;
+            
+            CLASSUPPER_fill(a, CLASSLOWER_FORTRANTYPE_0) ;
+            
+            for( i = 0 ; i != b->vsize ; ++i )
+            {
+                a->data[i + i*a->vsize] = b->data[i] ;
+            }
+        }
+        else if( TYPE(rb) == T_ARRAY )
+        {
+            VALUE* c_arr ;
+            long size ;
+            int i ;
+            
+            c_arr = RARRAY(rb)->ptr ;
+            size = RARRAY(rb)->len ;
+            
+            if( size < 1 )
+            {
+                raise_dim_error() ;
+            }
+            
+            a = CLASSUPPER_new(size, size) ;
+            ra = wrap_CLASSLOWER(a) ;
+            
+            CLASSUPPER_fill(a, CLASSLOWER_FORTRANTYPE_0) ;
+            
+            for( i = 0 ; i != size ; ++i )
+            {
+                a->data[i + i*a->vsize] = RUBY2FORTRAN(c_arr[i]) ;
+            }
+        }
+        else
+        {
+            rb_raise(rb_eRuntimeError, "not a vector or array") ;
+        }
+    }
+    else
+    {
+        int size = num2size(rb) ;
+        a = CLASSUPPER_new(size, size) ;
+        ra = wrap_CLASSLOWER(a) ;
+        CLASSUPPER_scalar_diagonal(a, RUBY2FORTRAN(rscalar)) ;
+    }
+
+    return ra ;
+}
+
+/* 
+ * :nodoc:
+ */
+VALUE rb_CLASSLOWER_reserve(VALUE klass, VALUE rvsize, VALUE rhsize)/* :nodoc: */
+{
+    integer vsize = num2size(rvsize) ;
+    integer hsize = num2size(rhsize) ;
+    return wrap_CLASSLOWER(CLASSUPPER_new(vsize, hsize)) ;
+}
+
+/**************************************************
+ *
+ * instance methods
+ *
+ **************************************************/
+
+/*
+ * call-seq:
+ *   new(vsize, hsize)
+ *   new(vsize, hsize, scalar)
+ *   new(vsize, hsize) { |i, j| ... }
+ *
+ * Returns a new matrix with dimensions [+vsize+, +hsize+].
+ *
+ * In the first form, the matrix is filled with zero.  In the second
+ * form, the matrix is filled with +scalar+.  In the third form, each
+ * index pair is passed to the block and the respective matrix element
+ * is assigned the block result.
+ *
+ *   CLASSUPPER.new(4,4) { |i,j| i == j ? 1 : 0 }
+ *
+ * is the 4 x 4 identity matrix.
+ *
+ */
+VALUE rb_CLASSLOWER_initialize(int argc, VALUE* argv, VALUE self)
+{
+    CLASSUPPER* a ;
+    VALUE rvsize ;
+    VALUE rhsize ;
+    VALUE rscalar ;
+    
+    int scan = rb_scan_args(argc, argv, "21", &rvsize, &rhsize, &rscalar) ;
+
+    get_CLASSLOWER(a, self) ;
+    CLASSUPPER_init(a, num2size(rvsize), num2size(rhsize)) ;
+
+    if( scan == 3 )
+    {
+        CLASSUPPER_fill(a, RUBY2FORTRAN(rscalar)) ;
+    }
+    else if( rb_block_given_p() == Qtrue )
+    {
+        int i ;
+        int j ;
+
+        for( j = 0 ; j != a->hsize ; ++j )
+        {
+            for( i = 0 ; i != a->vsize ; ++i )
+            {
+                VALUE pair = rb_assoc_new(INT2FIX(i),
+                                          INT2FIX(j)) ;
+                a->data[i + j*a->vsize] = RUBY2FORTRAN(rb_yield(pair)) ;
+            }
+        }
+    }
+    else
+    {
+        CLASSUPPER_fill(a, CLASSLOWER_FORTRANTYPE_0) ;
+    }
+
+    return self ;
+}
+
+/*
+ * call-seq: fill(value)
+ *
+ * Fill the matrix with +value+.
+ */
+VALUE rb_CLASSLOWER_fill(VALUE self, VALUE rval)
+{
+    FORTRANTYPE val = RUBY2FORTRAN(rval) ;
+    CLASSUPPER* a ;
+    get_CLASSLOWER(a, self) ;
+    CLASSUPPER_fill(a, val) ;
+    return self ;
+}
+
+/*
+ * call-seq: vsize
+ *
+ * Vertical size of the matrix (number of rows)
+ *
+ */
+VALUE rb_CLASSLOWER_vsize(VALUE self)
+{
+    CLASSUPPER* a ;
+    get_CLASSLOWER(a, self) ;
+    return INT2FIX(a->vsize) ;
+}
+        
+/*
+ *
+ * call-seq: hsize
+ *
+ * Horizontal size of the matrix (number of columns)
+ *
+ */
+VALUE rb_CLASSLOWER_hsize(VALUE self)
+{
+    CLASSUPPER* a ;
+    get_CLASSLOWER(a, self) ;
+    return INT2FIX(a->hsize) ;
+}
+        
+/*
+ * call-seq: dimensions
+ *
+ * Returns the pair
+ *
+ *   [a.vsize, a.hsize]
+ *
+ */
+VALUE rb_CLASSLOWER_dimensions(VALUE self)
+{
+    CLASSUPPER* a ;
+    get_CLASSLOWER(a, self) ;
+    return rb_assoc_new(INT2FIX(a->vsize),
+                        INT2FIX(a->hsize)) ;
+}
+
+/*
+ *
+ * call-seq: [](row, column)
+ *
+ * Element read.  Column vectors are permitted to omit the +column+ index.
+ *
+ */
+VALUE rb_CLASSLOWER_bracket_get(int argc, VALUE* argv, VALUE self)
+{
+    VALUE ri ;
+    VALUE rj ;
+    int i = 0 ;
+    int j = 0 ;
+    CLASSUPPER* a ;
+    get_CLASSLOWER(a, self) ;
+
+    if( rb_scan_args(argc, argv, "11", &ri, &rj) == 1 )
+    {
+        if( a->hsize == 1 )
+        {
+            i = NUM2INT(ri) ;
+            j = 0 ;
+        }
+        else
+        {
+            rb_raise(rb_eArgError, "") ;
+        }
+    }
+    else
+    {
+        i = NUM2INT(ri) ;
+        j = NUM2INT(rj) ;
+    }
+                        
+    if( i < 0 || i >= a->vsize ||
+        j < 0 || j >= a->hsize )
+    {
+        raise_index_error() ;
+    }
+
+    return FORTRAN2RUBY(a->data[i + j*a->vsize]) ;
+}
+
+/*
+ *
+ * call-seq: []=(row, column)
+ *
+ * Element write.  Column vectors are permitted to omit the +column+ index.
+ *
+ */
+VALUE rb_CLASSLOWER_bracket_set(int argc, VALUE* argv, VALUE self)
+{
+    CLASSUPPER* a ;
+    int i = 0 ;
+    int j = 0 ;
+    VALUE ri ;
+    VALUE rj ;
+    VALUE rv ;
+
+    get_CLASSLOWER(a, self) ;
+
+    if( rb_scan_args(argc, argv, "21", &ri, &rj, &rv) == 2 )
+    {
+        rv = rj ;
+
+        if( a->hsize == 1 )
+        {
+            i = NUM2INT(ri) ; 
+            j = 0 ;
+        }
+        else
+        {
+            raise_index_error() ;
+        }
+    }
+    else
+    {
+        i = NUM2INT(ri) ;
+        j = NUM2INT(rj) ;
+    }
+
+    if( i < 0 || i >= a->vsize ||
+        j < 0 || j >= a->hsize )
+    {
+        raise_index_error() ;
+    }
+
+    a->data[i + j*a->vsize] = RUBY2FORTRAN(rv) ;
+    return rv ;
+}
+
+/*
+ * call-seq: *(b)
+ *
+ * Matrix multiply
+ *
+ *   c = a * b
+ *
+ * +DimensionError+ is raised unless
+ *
+ *   a.hsize == b.vsize
+ *
+ */
+VALUE rb_CLASSLOWER_mul(VALUE self, VALUE rb)
+{
+    CLASSUPPER* a ;
+    get_CLASSLOWER(a, self) ;
+
+    if( rb_obj_is_kind_of(rb, rb_cCLASSUPPER) )
+    {
+        CLASSUPPER* b ;
+        CLASSUPPER* c ;
+
+        get_CLASSLOWER(b, rb) ;
+        
+        if( a->hsize != b->vsize )
+        {
+            raise_dim_error() ;
+        }
+        
+        c = CLASSUPPER_new(a->vsize, b->hsize) ;
+        CLASSUPPER_mul(c, a, b) ;
+        return wrap_CLASSLOWER(c) ;
+    }
+    else
+    {
+        CLASSUPPER* c = CLASSUPPER_clone(a) ;
+        CLASSUPPER_mul_scalar(c, RUBY2FORTRAN(rb)) ;
+        return wrap_CLASSLOWER(c) ;
+    }
+}
+
+/*
+ * call-seq: postmul!(b)
+ *
+ * In-place multiply
+ *
+ *   c = a * b
+ *
+ * is equivalent to
+ *
+ *   c = a.postmul!(b)
+ *
+ * with
+ *
+ *   a.object_id == c.object_id
+ *
+ * Note this implies +b+ must be square.  +DimensionError+ is raised
+ * otherwise.
+ *
+ */
+VALUE rb_CLASSLOWER_postmul_inplace(VALUE self, VALUE rb)
+{
+    CLASSUPPER* a ;
+    get_CLASSLOWER(a, self) ;
+
+    if( rb_obj_is_kind_of(rb, rb_cCLASSUPPER) )
+    {
+        CLASSUPPER* b ;
+        CLASSUPPER* c ;
+        
+        get_CLASSLOWER(b, rb) ;
+        
+        if( a->hsize != b->vsize ||
+            b->vsize != b->hsize )
+        {
+            raise_dim_error() ;
+        }
+        
+        c = CLASSUPPER_new(a->vsize, b->hsize) ;
+        CLASSUPPER_mul(c, a, b) ;
+        CLASSUPPER_swap(a, c) ;
+        CLASSUPPER_free(c) ;
+    }
+    else
+    {
+        CLASSUPPER_mul_scalar(a, RUBY2FORTRAN(rb)) ;
+    }
+
+    return self ;
+}
+
+/*
+ * call-seq: premul!(a)
+ *
+ * In-place multiply
+ *
+ *   c = a * b
+ *
+ * is equivalent to
+ *
+ *   c = b.premul!(a)
+ *
+ * with
+ *
+ *   b.object_id == c.object_id
+ *
+ * Note this implies +a+ must be square.  +DimensionError+ is raised
+ * otherwise.
+ *
+ */
+VALUE rb_CLASSLOWER_premul_inplace(VALUE self, VALUE ra)
+{
+    CLASSUPPER* b ;
+    get_CLASSLOWER(b, self) ;
+
+    if( rb_obj_is_kind_of(ra, rb_cCLASSUPPER) )
+    {
+        CLASSUPPER* a ;
+        CLASSUPPER* c ;
+        
+        get_CLASSLOWER(a, ra) ;
+        
+        if( a->hsize != b->vsize ||
+            a->vsize != a->hsize )
+        {
+            raise_dim_error() ;
+        }
+        
+        c = CLASSUPPER_new(a->vsize, b->hsize) ;
+        CLASSUPPER_mul(c, a, b) ;
+        CLASSUPPER_swap(b, c) ;
+        CLASSUPPER_free(c) ;
+    }
+    else
+    {
+        CLASSUPPER_mul_scalar(b, RUBY2FORTRAN(ra)) ;
+    }
+
+    return self ;
+}
+
+/* 
+ * call-seq: dot(b)
+ *
+ * Column vector dot product
+ *
+ *   a.dot(b)
+ *
+ * +DimensionError+ is raised unless
+ *
+ *   a.hsize == b.hsize and
+ *   b.hsize == 1 and
+ *   a.vsize == b.vsize
+ *
+ */
+VALUE rb_CLASSLOWER_dot(VALUE self, VALUE rb)
+{
+    CLASSUPPER* a ;
+    CLASSUPPER* b ;
+
+    get_CLASSLOWER(a, self) ;
+    get_CLASSLOWER(b, rb) ;
+
+    if( a->hsize != 1 ||
+        b->hsize != 1 ||
+        a->vsize != b->vsize )
+    {
+        raise_dim_error() ;
+    }
+    
+    return FORTRAN2RUBY(CLASSUPPER_dot(a, b)) ;
+}
+
+/*
+ * call-seq: plus!(b)
+ *
+ * In-place matrix addition.
+ *
+ *   a.object_id == a.plus!(b).object_id
+ *
+ */
+VALUE rb_CLASSLOWER_plus_inplace(VALUE self, VALUE rb)
+{
+    CLASSUPPER* a ;
+    CLASSUPPER* b ;
+    get_CLASSLOWER(a, self) ;
+    get_CLASSLOWER(b, rb) ;
+
+    if( a->vsize != b->vsize ||
+        a->hsize != b->hsize)
+    {
+        raise_dim_error() ;
+    }
+
+    CLASSUPPER_plus(a, b) ;
+    return self ;
+}
+
+/*
+ * call-seq: +(b)
+ *
+ * Matrix addition.
+ *
+ *   a + b
+ *
+ * +DimensionError+ is raised unless
+ *
+ *   a.dimensions == b.dimensions
+ *
+ */
+VALUE rb_CLASSLOWER_plus(VALUE self, VALUE ra)
+{
+    return rb_CLASSLOWER_plus_inplace(rb_CLASSLOWER_clone(self),ra) ;
+}
+
+/*
+ * call-seq: minus!(b)
+ *
+ * In-place matrix subtraction.
+ *
+ *   c = a - b
+ *
+ * is equivalent to
+ *
+ *   c = a.minus!(b)
+ *
+ * with
+ *
+ *   a.object_id == c.object_id
+ *
+ */
+VALUE rb_CLASSLOWER_minus_inplace(VALUE self, VALUE rb)
+{
+    CLASSUPPER* a ;
+    CLASSUPPER* b ;
+    get_CLASSLOWER(a, self) ;
+    get_CLASSLOWER(b, rb) ;
+
+    if( a->vsize != b->vsize ||
+        a->hsize != b->hsize)
+    {
+        raise_dim_error() ;
+    }
+
+    CLASSUPPER_minus(a, b) ;
+    return self ;
+}
+
+/*
+ * call-seq: -(b)
+ *
+ * Matrix subtraction
+ *
+ *   a - b
+ *
+ * +DimensionError+ is raised unless
+ *
+ *   a.dimensions == b.dimensions
+ *
+ */
+VALUE rb_CLASSLOWER_minus(VALUE self, VALUE rb)
+{
+    return rb_CLASSLOWER_minus_inplace(rb_CLASSLOWER_clone(self),rb) ;
+}
+
+/*
+ * call-seq: negate!
+ *
+ * In-place unary minus.
+ *
+ */
+VALUE rb_CLASSLOWER_unary_minus_inplace(VALUE self)
+{
+    CLASSUPPER* a ;
+    get_CLASSLOWER(a, self) ;
+    CLASSUPPER_mul_scalar(a, CLASSLOWER_FORTRANTYPE_neg_1) ;
+    return self ;
+}
+
+/*
+ * call-seq: -@
+ *
+ * Unary minus
+ *
+ */
+VALUE rb_CLASSLOWER_unary_minus(VALUE self)
+{
+    return rb_CLASSLOWER_unary_minus_inplace(rb_CLASSLOWER_clone(self)) ;
+}
+
+/*
+ * call-seq: +@
+ *
+ * Unary plus.  Does nothing.
+ *
+ */
+VALUE rb_CLASSLOWER_unary_plus(VALUE self)
+{
+    return self ;
+}
+
+/*
+ * call-seq: to_a
+ *
+ * Create an array from the matrix
+ *
+ *   a = m.to_a
+ *
+ * is equivalent to
+ *
+ *   a = Array.new(m.vsize) { Array.new(m.hsize) }
+ *   m.each_index { |i,j|
+ *      a[i][j] = m[i,j]
+ *   }
+ *
+ */
+VALUE rb_CLASSLOWER_to_a(VALUE self)
+{
+    int i ;
+    int j ;
+    VALUE arr ;
+    VALUE row ;
+    CLASSUPPER* a ;
+    get_CLASSLOWER(a, self) ;
+
+    arr = rb_ary_new2(a->vsize) ;
+
+    for( i = 0 ; i != a->vsize ; ++i )
+    {
+        row = rb_ary_new2(a->hsize) ;
+
+        for( j = 0 ; j != a->hsize ; ++j )
+        {
+            rb_ary_store(row,
+                         j,
+                         FORTRAN2RUBY(a->data[i + j*a->vsize])) ;
+        }
+
+        rb_ary_store(arr, i, row) ;
+    }
+
+    return arr ;
+}
+
+/*
+ * call-seq: transpose
+ *
+ * Matrix transpose
+ *
+ */
+VALUE rb_CLASSLOWER_transpose(VALUE self)
+{
+    CLASSUPPER* a ;
+    CLASSUPPER* trans ;
+    get_CLASSLOWER(a, self) ;
+    trans = CLASSUPPER_new(a->hsize, a->vsize) ;
+    CLASSUPPER_transpose(trans, a) ;
+    return wrap_CLASSLOWER(trans) ;
+}
+
+/*
+ * call-seq: transpose!
+ *
+ * In-place matrix transpose.  Guaranteed O(1) trivial cost for column
+ * and row vectors.  Note that transpose flags are not implemented;
+ * thus for non-vectors the cost is a temporary copy and assignment.
+ *
+ */
+VALUE rb_CLASSLOWER_transpose_inplace( VALUE self )
+{
+    CLASSUPPER* a ;
+    get_CLASSLOWER(a, self) ;
+    CLASSUPPER_transpose_inplace(a) ;
+    return self ;
+}
+
+static CLASSUPPER* CLASSLOWER_minor( CLASSUPPER* a,
+                                     integer i,
+                                     integer j,
+                                     integer vsize,
+                                     integer hsize )
+{
+    CLASSUPPER* c ;
+
+    if( i < 0 || i + vsize - 1 >= a->vsize ||
+        j < 0 || j + hsize - 1 >= a->hsize )
+    {
+        raise_index_error() ;
+    }
+
+    c = CLASSUPPER_new(vsize, hsize) ;
+    CLASSUPPER_minor(c, a, i, j, vsize, hsize) ;
+    return c ;
+}
+
+static void CLASSLOWER_replace_minor( CLASSUPPER* c,
+                                      integer i,
+                                      integer j,
+                                      CLASSUPPER* a )
+{
+    if( i < 0 || i + a->vsize - 1 >= c->vsize ||
+        j < 0 || j + a->hsize - 1 >= c->hsize )
+    {
+        raise_index_error() ;
+    }
+
+    CLASSUPPER_replace_minor(c, i, j, a) ;
+}
+
+/*
+ * call-seq: minor(i, j, vsize, hsize)
+ *
+ * Return the minor with upper-left position <tt>[i, j]</tt> and
+ * dimensions <tt>[vsize, hsize]</tt>.
+ * 
+ */
+VALUE rb_CLASSLOWER_minor( VALUE self,
+                           VALUE ri,
+                           VALUE rj,
+                           VALUE rvsize,
+                           VALUE rhsize )
+{
+    CLASSUPPER* a ;
+    integer i = (integer)NUM2INT(ri) ;
+    integer j = (integer)NUM2INT(rj) ;
+    integer vsize = (integer)num2size(rvsize) ;
+    integer hsize = (integer)num2size(rhsize) ;
+    get_CLASSLOWER(a, self) ;
+    return wrap_CLASSLOWER(CLASSLOWER_minor(a, i, j, vsize, hsize)) ;
+}
+
+/*
+ * call-seq: replace_minor(i, j, minor)
+ * 
+ * Insert +minor+ into the matrix, where [+i+,+j+] is the location of
+ * the upper-left corner of the minor.
+ * 
+ */
+VALUE rb_CLASSLOWER_replace_minor( VALUE self,
+                                   VALUE ri,
+                                   VALUE rj,
+                                   VALUE rminor )
+{
+    CLASSUPPER* c ;
+    CLASSUPPER* a ;
+    integer i = (integer)NUM2INT(ri) ;
+    integer j = (integer)NUM2INT(rj) ;
+    
+    get_CLASSLOWER(c, self) ;
+    get_CLASSLOWER(a, rminor) ;
+    
+    CLASSLOWER_replace_minor(c, i, j, a) ;
+    return self ;
+}
+
+
+/*
+ * call-seq: column(j)
+ *
+ * Returns the +j+-th column of the matrix.
+ *
+ */
+VALUE rb_CLASSLOWER_column( VALUE self, VALUE rj )
+{
+    CLASSUPPER* c ;
+    integer j = (integer)NUM2INT(rj) ;
+    get_CLASSLOWER(c, self) ;
+    return wrap_CLASSLOWER(CLASSLOWER_minor(c, 0, j, c->vsize, 1)) ;
+}
+
+/*
+ * call-seq: row(i)
+ *
+ * Returns the +i+-th row of the matrix.
+ *
+ */
+VALUE rb_CLASSLOWER_row( VALUE self, VALUE ri )
+{
+    CLASSUPPER* a ;
+    integer i = (integer)NUM2INT(ri) ;
+    get_CLASSLOWER(a, self) ;
+    return wrap_CLASSLOWER(CLASSLOWER_minor(a, i, 0, 1, a->hsize)) ;
+}
+   
+/*
+ * call-seq: replace_column(j, v)
+ *
+ * replace the +j+-th column with the column vector +v+.
+ *
+ */
+VALUE rb_CLASSLOWER_replace_column( VALUE self, VALUE rj, VALUE rv )
+{
+    CLASSUPPER* a ;
+    integer j = (integer)NUM2INT(rj) ;
+    CLASSUPPER* v ;
+
+    get_CLASSLOWER(a, self) ;
+    get_CLASSLOWER(v, rv) ;
+
+    if( v->hsize != 1 ||
+        v->vsize != a->vsize )
+    {
+        raise_dim_error() ;
+    }
+    
+    CLASSLOWER_replace_minor(a, 0, j, v) ;
+    return self ;
+}
+
+/*
+ * call-seq: replace_row(i, v)
+ *
+ * replace the +i+-th row with the row vector +v+.
+ *
+ */
+VALUE rb_CLASSLOWER_replace_row( VALUE self, VALUE ri, VALUE rv )
+{
+    CLASSUPPER* a ;
+    integer i = (integer)NUM2INT(ri) ;
+    CLASSUPPER* v ;
+
+    get_CLASSLOWER(a, self) ;
+    get_CLASSLOWER(v, rv) ;
+    
+    if( v->vsize != 1 ||
+        v->hsize != a->hsize )
+    {
+        raise_dim_error() ;
+    }
+    
+    CLASSLOWER_replace_minor(a, i, 0, v) ;
+    return self ;
+}
+
+/*
+ * call-seq: to_FORTRANTYPE_ptr
+ *
+ * Actual pointer value of the matrix data.  Subject to change after a
+ * bang (!) operation.  This is called by the +Lapack+ module.
+ *
+ */
+VALUE rb_CLASSLOWER_to_FORTRANTYPE_ptr(VALUE self)
+{
+    CLASSUPPER* a ;
+    get_CLASSLOWER(a, self) ;
+    return LONG2NUM((long)a->data) ;
+}
+
+/*
+ * call-seq: coerce(other)
+ *
+ * Internal call from Numeric#coerce.
+ *
+ */
+VALUE rb_CLASSLOWER_coerce(VALUE self, VALUE other)
+{
+    return rb_assoc_new(self, other) ;
+}
+
+/*
+ * call-seq:
+ *   symmetric!
+ *
+ * Force the matrix to be symmetric, reflecting the upper triangle
+ * onto the lower triangle.
+ *
+ */
+VALUE rb_CLASSLOWER_make_symmetric( VALUE self )
+{
+    CLASSUPPER* a ;
+    get_CLASSLOWER(a, self) ;
+    
+    if( a->vsize != a->hsize )
+    {
+        raise_dim_error() ;
+    }
+
+    {
+        int i ;
+        int j ;
+
+        for( j = 0 ; j < a->hsize ; ++j )
+        {
+            for( i = j + 1 ; i < a->vsize ; ++i )
+            {
+                a->data[i + j*a->vsize] = a->data[j + i*a->vsize] ;
+            }
+        }
+    }
+    
+    return self ;
+}
+
+/*
+ * call-seq: _dump
+ *
+ * For Marshal.  Uses native data format.
+ *
+ */
+VALUE rb_CLASSLOWER_marshal_dump(VALUE self, VALUE depth)
+{
+    /*
+     * format:
+     *   sizeof(integer)                  vsize  
+     *   sizeof(integer)                  hsize
+     *   40*sizeof(char)                  reserved
+     *   vsize*hsize*sizeof(FORTRANTYPE)   data
+     */
+
+    CLASSUPPER* a ;
+    VALUE str ;
+    char reserved[40] = { 0 } ;
+    
+    get_CLASSLOWER(a, self) ;
+    
+    str = rb_str_buf_new(1*sizeof(integer) +
+                         1*sizeof(integer) +
+                         40*sizeof(char) +
+                         a->vsize*a->hsize*sizeof(FORTRANTYPE)) ;
+
+    rb_str_buf_cat(str, (const char*)(&a->vsize), 1*sizeof(integer)) ;
+    rb_str_buf_cat(str, (const char*)(&a->hsize), 1*sizeof(integer)) ;
+    rb_str_buf_cat(str, (const char*)(reserved), 40*sizeof(char)) ;
+    rb_str_buf_cat(str, (const char*)(a->data),
+                   a->vsize*a->hsize*sizeof(FORTRANTYPE)) ;
+    return str ;
+}
+
+/*
+ * call-seq: _load
+ *
+ * For Marshal.  Uses native data format.
+ *
+ */
+VALUE rb_CLASSLOWER_s_marshal_load(VALUE klass, VALUE str)
+{
+    CLASSUPPER* a ;
+    integer vsize ;
+    integer hsize ;
+    char* p = (char*)RSTRING(str)->ptr ;
+
+    vsize = *((integer*)p) ;
+    p += sizeof(integer) ;
+
+    hsize = *((integer*)p) ;
+    p += sizeof(integer) ;
+
+    p += 40*sizeof(char) ;
+
+    a = CLASSUPPER_new(vsize, hsize) ;
+    memcpy((void*)a->data, (void*)p, vsize*hsize*sizeof(FORTRANTYPE)) ;
+
+    return wrap_CLASSLOWER(a) ;
+}
+
+#if 0
+/*
+ * call-seq: within(epsilon, other)
+ *
+ * Test if each matrix element is within +epsilon+ of the respective
+ * matrix element of +other+.
+ *
+ */
+VALUE rb_CLASSLOWER_within( VALUE self, VALUE repsilon, VALUE other )
+{
+    /* rdoc can't find this function */
+}
+#endif
+
+#if 0
+/*
+ * call-seq: within(epsilon, other)
+ *
+ * Test if each matrix element is within +epsilon+ of the respective
+ * matrix element of +other+.
+ *
+ */
+VALUE rb_CLASSLOWER_within( VALUE self, VALUE repsilon, VALUE other )
+{
+    /* rdoc can't find this function */
+}
+#endif
+
+#if 0
+/*
+ * call-seq: /(s)
+ *
+ * Division by scalar +s+.
+ *
+ */
+VALUE rb_CLASSLOWER_div(VALUE self, VALUE rs)
+{
+    /* rdoc can't find this function */
+}
+#endif
+
+#if 0
+/*
+ * 
+ */
+VALUE rb_CLASSLOWER_symmetric_private( VALUE self, VALUE repsilon )
+{
+}
+#endif
+
+void Init_CLASSLOWER()
+{
+    /* Linalg */
+    rb_cLinalg = rb_define_module("Linalg") ;
+                              
+    /* Linalg::Exception */
+    rb_cLinalgException = rb_define_module_under(rb_cLinalg, "Exception") ;
+    
+    /* DimensionError */
+    rb_eDimensionError =
+        rb_define_class_under(rb_cLinalgException,
+                              "DimensionError",
+                              rb_eRuntimeError) ;
+
+    /* CLASSUPPER */
+    rb_cCLASSUPPER =
+        rb_define_class_under(rb_cLinalg,
+                              "CLASSUPPER",
+                              rb_cObject) ;
+
+    /* allocate */
+    rb_define_alloc_func(rb_cCLASSUPPER, rb_CLASSLOWER_allocate) ;
+
+    /* singleton methods */
+    rb_define_singleton_method(rb_cCLASSUPPER, "rows",
+                               RUBY_METHOD_FUNC(rb_CLASSLOWER_s_rows), 1) ;
+    rb_define_singleton_method(rb_cCLASSUPPER, "identity",
+                               RUBY_METHOD_FUNC(rb_CLASSLOWER_s_identity), 1) ;
+    rb_define_singleton_method(rb_cCLASSUPPER, "diagonal",
+                               RUBY_METHOD_FUNC(rb_CLASSLOWER_s_diagonal), -1) ;
+    rb_define_singleton_method(rb_cCLASSUPPER, "rand",
+                               RUBY_METHOD_FUNC(rb_CLASSLOWER_s_rand), 2) ;
+    rb_define_singleton_method(rb_cCLASSUPPER, "reserve",
+                               RUBY_METHOD_FUNC(rb_CLASSLOWER_reserve), 2) ;
+    rb_define_singleton_method(rb_cCLASSUPPER, "_load",
+                               RUBY_METHOD_FUNC(rb_CLASSLOWER_s_marshal_load), 1) ;
+
+    /* instance methods  */
+    rb_define_method(rb_cCLASSUPPER, "initialize",
+                     RUBY_METHOD_FUNC(rb_CLASSLOWER_initialize), -1) ;
+    rb_define_method(rb_cCLASSUPPER, "vsize",
+                     RUBY_METHOD_FUNC(rb_CLASSLOWER_vsize), 0) ;
+    rb_define_method(rb_cCLASSUPPER, "hsize",
+                     RUBY_METHOD_FUNC(rb_CLASSLOWER_hsize), 0) ;
+    rb_define_method(rb_cCLASSUPPER, "dimensions",
+                     RUBY_METHOD_FUNC(rb_CLASSLOWER_dimensions), 0) ;
+    rb_define_method(rb_cCLASSUPPER, "[]",
+                     RUBY_METHOD_FUNC(rb_CLASSLOWER_bracket_get), -1) ;
+    rb_define_method(rb_cCLASSUPPER, "[]=",
+                     RUBY_METHOD_FUNC(rb_CLASSLOWER_bracket_set), -1) ;
+
+    rb_define_method(rb_cCLASSUPPER, "to_a",
+                     RUBY_METHOD_FUNC(rb_CLASSLOWER_to_a), 0) ;
+    rb_define_method(rb_cCLASSUPPER, "_dump",
+                     RUBY_METHOD_FUNC(rb_CLASSLOWER_marshal_dump), 1) ;
+    rb_define_method(rb_cCLASSUPPER, "clone",
+                     RUBY_METHOD_FUNC(rb_CLASSLOWER_clone), 0) ;
+    rb_define_method(rb_cCLASSUPPER, "to_FORTRANTYPE_ptr",
+                     RUBY_METHOD_FUNC(rb_CLASSLOWER_to_FORTRANTYPE_ptr), 0) ;
+    rb_define_method(rb_cCLASSUPPER, "coerce",
+                     RUBY_METHOD_FUNC(rb_CLASSLOWER_coerce), 1) ;
+
+    rb_define_method(rb_cCLASSUPPER, "+",
+                     RUBY_METHOD_FUNC(rb_CLASSLOWER_plus), 1) ;
+    rb_define_method(rb_cCLASSUPPER, "plus!",
+                     RUBY_METHOD_FUNC(rb_CLASSLOWER_plus_inplace), 1) ;
+    rb_define_method(rb_cCLASSUPPER, "+@",
+                     RUBY_METHOD_FUNC(rb_CLASSLOWER_unary_plus), 0) ;
+
+    rb_define_method(rb_cCLASSUPPER, "-",
+                     RUBY_METHOD_FUNC(rb_CLASSLOWER_minus), 1) ;
+    rb_define_method(rb_cCLASSUPPER, "minus!",
+                     RUBY_METHOD_FUNC(rb_CLASSLOWER_minus_inplace), 1) ;
+    rb_define_method(rb_cCLASSUPPER, "-@",
+                     RUBY_METHOD_FUNC(rb_CLASSLOWER_unary_minus), 0) ;
+    rb_define_method(rb_cCLASSUPPER, "negate!",
+                     RUBY_METHOD_FUNC(rb_CLASSLOWER_unary_minus_inplace), 0) ;
+
+    rb_define_method(rb_cCLASSUPPER, "*",
+                     RUBY_METHOD_FUNC(rb_CLASSLOWER_mul), 1) ;
+    rb_define_method(rb_cCLASSUPPER, "postmul!",
+                     RUBY_METHOD_FUNC(rb_CLASSLOWER_postmul_inplace), 1) ;
+    rb_define_method(rb_cCLASSUPPER, "premul!",
+                     RUBY_METHOD_FUNC(rb_CLASSLOWER_premul_inplace), 1) ;
+
+    rb_define_method(rb_cCLASSUPPER, "/",
+                     RUBY_METHOD_FUNC(rb_CLASSLOWER_div), 1) ;
+
+    rb_define_method(rb_cCLASSUPPER, "dot",
+                     RUBY_METHOD_FUNC(rb_CLASSLOWER_dot), 1) ;
+    rb_define_method(rb_cCLASSUPPER, "transpose",
+                     RUBY_METHOD_FUNC(rb_CLASSLOWER_transpose), 0) ;
+    rb_define_method(rb_cCLASSUPPER, "transpose!",
+                     RUBY_METHOD_FUNC(rb_CLASSLOWER_transpose_inplace), 0) ;
+
+    rb_define_method(rb_cCLASSUPPER, "within",
+                     RUBY_METHOD_FUNC(rb_CLASSLOWER_within), 2) ;
+
+    rb_define_method(rb_cCLASSUPPER, "column",
+                     RUBY_METHOD_FUNC(rb_CLASSLOWER_column), 1) ;
+    rb_define_method(rb_cCLASSUPPER, "row",
+                     RUBY_METHOD_FUNC(rb_CLASSLOWER_row), 1) ;
+    rb_define_method(rb_cCLASSUPPER, "replace_column",
+                     RUBY_METHOD_FUNC(rb_CLASSLOWER_replace_column), 2) ;
+    rb_define_method(rb_cCLASSUPPER, "replace_row",
+                     RUBY_METHOD_FUNC(rb_CLASSLOWER_replace_row), 2) ;
+    rb_define_method(rb_cCLASSUPPER, "minor",
+                     RUBY_METHOD_FUNC(rb_CLASSLOWER_minor), 4) ;
+    rb_define_method(rb_cCLASSUPPER, "replace_minor",
+                     RUBY_METHOD_FUNC(rb_CLASSLOWER_replace_minor), 3) ;
+    rb_define_method(rb_cCLASSUPPER, "fill",
+                     RUBY_METHOD_FUNC(rb_CLASSLOWER_fill), 1) ;
+
+    rb_define_method(rb_cCLASSUPPER, "symmetric!",
+                     RUBY_METHOD_FUNC(rb_CLASSLOWER_make_symmetric), 0) ;
+    rb_define_private_method(rb_cCLASSUPPER, "symmetric_private",
+                             RUBY_METHOD_FUNC(rb_CLASSLOWER_symmetric_private), 1) ;
+}
+

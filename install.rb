@@ -112,6 +112,9 @@ module Main
       FileUtils.rm_f Dir.glob("*.gem")
       FileUtils.rm_f Dir.glob("*~")
       FileUtils.rm_f Dir.glob("**/*~")
+      FileUtils.rm_rf Dir.glob("ext/**/conftest.dSYM")
+      FileUtils.rm_f Dir.glob("ext/**/g2c.h")
+      FileUtils.rm_f Dir.glob("ext/**/libg2c.a")
    end
 
    def make

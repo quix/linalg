@@ -8,7 +8,7 @@ install.
 
 linalg requires LAPACK, a legacy Fortran library for linear algebra.
 Your platform should have a pre-built package available for you to
-install (its dependencies are BLAS and libf2c).
+install (its dependencies are BLAS and libg2c).
 
 Individual options are
 

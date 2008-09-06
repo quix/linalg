@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004 by James M. Lawrence
+ * Copyright (c) 2004-2008 by James M. Lawrence
  *
  * See LICENSE
  *

@@ -468,13 +468,13 @@ call them.
 
 Author::   James M. Lawrence <quixoticsycophant@gmail.com>
 Requires:: Ruby 1.8.1 or later
-License::  Copyright (c) 2004 James M. Lawrence.
+License::  Copyright (c) 2004-2008 James M. Lawrence.
            Released under the MIT license.
 
 ----
 === License
 
-Copyright (c) 2004 James M. Lawrence
+Copyright (c) 2004-2008 James M. Lawrence
 
 If +linalg+ begins to smoke, get away immediately.  Seek shelter and
 cover head.

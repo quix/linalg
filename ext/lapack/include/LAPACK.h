@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004 by James M. Lawrence
+ * Copyright (c) 2004-2008 by James M. Lawrence
  *
  * See LICENSE
  *
@@ -7,7 +7,7 @@
 #ifndef LAPACK_H
 #define LAPACK_H
 /* version 3.0 */ 
-/* generated Fri Jun 04 05:57:50 EDT 2004 */
+/* generated Fri Jun 04 05:57:50 EDT 2004-2008 */
 
 extern int cbdsqr_(char *uplo, integer *n, integer *ncvt, integer *nru, integer *ncc, real *d__, real *e, complex *vt, integer *ldvt, complex *u, integer *ldu, complex *c__, integer *ldc, real *rwork, integer *info);
 extern int cgbbrd_(char *vect, integer *m, integer *n, integer *ncc, integer *kl, integer *ku, complex *ab, integer *ldab, real *d__, real *e, complex *q, integer *ldq, complex *pt, integer *ldpt, complex *c__, integer *ldc, complex *work, real *rwork, integer *info);

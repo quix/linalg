@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004 by James M. Lawrence
+ * Copyright (c) 2004-2008 by James M. Lawrence
  *
  * See LICENSE
  *
@@ -7,7 +7,7 @@
 #ifndef BLAS_H
 #define BLAS_H
 /* version 20031025 */ 
-/* generated Fri Jun 04 05:58:15 EDT 2004 */
+/* generated Fri Jun 04 05:58:15 EDT 2004-2008 */
 
 extern int caxpy_(integer *n, complex *ca, complex *cx, integer *incx, complex *cy, integer *incy);
 extern int ccopy_(integer *n, complex *cx, integer *incx, complex *cy, integer *incy);

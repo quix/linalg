@@ -80,6 +80,15 @@ module LinalgPackager
          _release_bin(pkgdir, :tgz)
       end
    end
+
+   def publish
+     doc
+     Dir.chdir("doc") {
+       args = %w(scp -r . quix@rubyforge.org:/var/www/gforge-projects/linalg)
+       puts args.join(" ")
+       raise unless system(*args)
+     }
+   end
 end
 
 module Main

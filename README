@@ -25,6 +25,30 @@ Minor features:
 * Determinant
 * 2-norm, 1-norm, infinity-norm, Frobenius norm
 
+=== Installing
+
+  $ ruby install.rb
+
+If you have prebuilt binaries, this will install the package.
+
+If you are compiling source, this will configure, make, make docs, and
+install.
+
+linalg requires LAPACK, a legacy Fortran library for linear algebra.
+Your platform should have a pre-built package available for you to
+install (its dependencies are BLAS and libg2c).
+
+Individual options are
+
+  $ ruby install.rb config
+  $ ruby install.rb make
+  $ ruby install.rb install
+  $ ruby install.rb doc
+  $ ruby install.rb uninstall
+  $ ruby install.rb clean
+  $ ruby install.rb distclean
+  $ ruby install.rb test
+
 === Getting Started
 
 Everything you need to know is in:
@@ -389,6 +413,14 @@ And now the fun stuff <tt>  =)</tt>
 
 See the Linalg::DMatrix documentation for more info.  The various
 tests in test/ are also instructive.
+
+=== Download
+
+* http://rubyforge.org/frs/?group_id=273
+
+=== Repository
+
+* http://github.com/quix/linalg
 
 === Notes
 

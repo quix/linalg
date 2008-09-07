@@ -52,16 +52,6 @@ module LinalgPackager
 
    def _release_bin(pkgdir, ziptype)
       distclean
-
-      # ok I'm lazy
-      if RUBY_PLATFORM =~ %r!darwin! and ENV["USER"] == "jlawrence"
-         Ext.each { |ext|
-            g2c_h = "usr/lib/gcc/i686-apple-darwin8.8.1/3.4.0/include/g2c.h"
-            cp "#{ENV['HOME']}/usr/lib/libg2c.a", "."
-            cp "#{ENV['HOME']}/#{g2c_h}", "."
-         }
-      end
-
       config
       make
       doc
@@ -110,7 +100,6 @@ module Main
       } + [
          'ext/linalg/dmatrix.c',
          'lib/linalg/dmatrix/alias.rb',
-         'INSTALL',
          'README',
       ]
       

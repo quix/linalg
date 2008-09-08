@@ -394,99 +394,21 @@ tests in test/ are also instructive.
 
 * http://rubyforge.org/frs/?group_id=273
 
-=== Install
-
-  $ ruby install.rb
-
-If you have prebuilt binaries, this will install the package.
-
-If you are compiling source, this will configure, make, make docs, and
-install.
-
-linalg requires LAPACK, a legacy Fortran library for linear algebra.
-Your platform should have a pre-built package available for you to
-install (its dependencies are BLAS and libg2c).
-
-Individual options are
-
-  $ ruby install.rb config
-  $ ruby install.rb make
-  $ ruby install.rb install
-  $ ruby install.rb doc
-  $ ruby install.rb uninstall
-  $ ruby install.rb clean
-  $ ruby install.rb distclean
-  $ ruby install.rb test
-
 === Repository
 
 * http://github.com/quix/linalg
 
 === Notes
 
-I have intentionally left out the methods +column_size+ and +row_size+
-found in matrix.rb in the standard library.  I expect +column_size+ to
-be the column size, not the row size!  That is, when I look at a
-column, I expect it to be of length +column_size+.
-
-I have chosen the terms +vsize+ and +hsize+, meaning <em>vertical
-size</em> and <em>horizontal size</em>, respectively.  These terms
-create a visual picture in my mind which I find particularly helpful.
-I have also made the following aliases: +num_rows+, +nrow+,
-+num_columns+, +ncol+.
+There are four matrix types: +SMatrix+, +DMatrix+, +CMatrix+, and
++ZMatrix+ -- single precision, double precision, single precision
+complex, and double precision complex, respectively.  They are all
+available with basic functionality, however the more complex routines
+you see here currently lie only in +DMatrix+.
 
 If you have used +narray+, note that +linalg+ uses the mathematical
 definition of <em>rank</em>, which is equal to the number of columns
 only in the case of a nonsingular square matrix.
-
-=== ToDo
-
-There are actually four internal matrix types: +SMatrix+, +DMatrix+,
-+CMatrix+, and +ZMatrix+ -- single precision, double precision, single
-precision complex, and double precision complex, respectively.  They
-are all available to you right now with basic functionality.  However
-the more complex routines you see here currently lie only in
-+DMatrix+.  I am in the process of factoring out these routines.  The
-LAPACK routines for complex matrices are in most cases very similar to
-their real counterparts, but will still require time and testing to
-implement.
-
-The other issue is that refactoring will make the +rdoc+ output less
-desirable, scattering methods away from their classes.
-
-=== Background
-
-It started when I needed eigenvectors of a general matrix.  I grabbed
-Rubikitch's +mathx+ library and hacked in some eigensystem routines.
-I eventually added more routines, culminating into +linalg+.
-
-I have conflicting thoughts toward +linalg+.  First, Rubikitch's
-+mathx+ package did not seem to be actively maintained, and it
-contained little documentation.  I could have attempted to maintain it
-myself, but practicality dictated that I write more linear algebra
-methods to suit my current needs.
-
-In the process, I ended up rewriting what was the +mathx+ portion of
-my code.  While I believe +linalg+ no longer contains code from
-+mathx+, I have e-mailed Rubikitch asking whether he feels +linalg+ is
-a derivative work of the +DMatrix+ class found in +mathx+.  I will
-change the license to LGPL if he feels it is such.
-
-The other issue is +narray+.  After a short trial, I decided it was
-too difficult to retrofit +linalg+ into +narray+.  There are also
-irreconcilable stylistic differences between +linalg+ and +narray+.
-
-But +linalg+ does not directly compete with +narray+.  +linalg+ is for
-doing numerical analysis and is rather isolated from the rest of ruby.
-Where +linalg+ has only four matrix types, +narray+ has several more
-(including generic ruby objects) and plays well with other ruby
-packages.
-
-Perhaps some day there will be a common library which all numerical
-ruby packages may share.  Perhaps the basis will be the R-project
-library.  But for now, +linalg+ exists because the LAPACK routines
-were "right there" in front of me, I needed them, and it was easy to
-call them.
 
 === Details
 

@@ -1,0 +1,23 @@
+
+  $ ruby install.rb
+
+If you have prebuilt binaries, this will install the package.
+
+If you are compiling source, this will configure, make, make docs, and
+install.
+
+linalg requires LAPACK, a legacy Fortran library for linear algebra.
+Your platform should have a pre-built package available for you to
+install (its dependencies are BLAS and libg2c).
+
+Individual options are
+
+  $ ruby install.rb config
+  $ ruby install.rb make
+  $ ruby install.rb install
+  $ ruby install.rb doc
+  $ ruby install.rb uninstall
+  $ ruby install.rb clean
+  $ ruby install.rb distclean
+  $ ruby install.rb test
+

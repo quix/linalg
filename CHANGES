@@ -1,7 +1,7 @@
 
 = Linalg Changes
 
-=== Version 0.3.3
+=== Version 1.0.0
 
 * Use g2c instead of f2c.  Contributed by Luis Parravicini.
 * Use Config['DLEXT'].  Fixes Mac ".bundle" issue.

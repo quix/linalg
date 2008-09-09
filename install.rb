@@ -4,7 +4,7 @@ require 'fileutils'
 require 'rdoc/rdoc'
 require 'mkmf'
 
-LINALG_VERSION = "0.3.3"
+LINALG_VERSION = "1.0.0"
 
 DLEXT = Config::CONFIG["DLEXT"]
 
@@ -113,7 +113,10 @@ module Main
       ]
       
       rm_rf "doc"
-      RDoc::RDoc.new.document(rdoc_files + ["--main", "README"])
+      RDoc::RDoc.new.document(
+        rdoc_files +
+        ["--main", "README",
+        "--title", "Linalg: Ruby Linear Algebra Library"])
    end
 
    def distclean(rmdoc = true)

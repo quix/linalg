@@ -386,14 +386,14 @@ VALUE rb_CLASSLOWER_s_rows( VALUE klass, VALUE array )
         raise_bad_array() ;
     }
 
-    ptr = RARRAY(array)->ptr ;
-    vsize = RARRAY(array)->len ;
+    ptr = RARRAY_PTR(array) ;
+    vsize = RARRAY_LEN(array) ;
 
     if( vsize < 1 || TYPE(ptr[0]) != T_ARRAY )
     {
         raise_bad_array() ;
     }
-    if( (hsize = RARRAY(ptr[0])->len) == 0 )
+    if( (hsize = RARRAY_LEN(ptr[0])) == 0 )
     {
         raise_bad_array() ;
     }
@@ -410,14 +410,14 @@ VALUE rb_CLASSLOWER_s_rows( VALUE klass, VALUE array )
             raise_bad_array() ;
         }
 
-        if( RARRAY(crow)->len != hsize )
+        if( RARRAY_LEN(crow) != hsize )
         {
             raise_bad_array() ;
         }
 
         for( j = 0 ; j != hsize ; j++ )
         {
-            a->data[i + j*a->vsize] = RUBY2FORTRAN(RARRAY(crow)->ptr[j]) ;
+            a->data[i + j*a->vsize] = RUBY2FORTRAN(RARRAY_PTR(crow)[j]) ;
         }
     }
 
@@ -549,8 +549,8 @@ VALUE rb_CLASSLOWER_s_diagonal(int argc, VALUE* argv, VALUE klass)
             long size ;
             int i ;
             
-            c_arr = RARRAY(rb)->ptr ;
-            size = RARRAY(rb)->len ;
+            c_arr = RARRAY_PTR(rb) ;
+            size = RARRAY_LEN(rb) ;
             
             if( size < 1 )
             {
@@ -1443,7 +1443,7 @@ VALUE rb_CLASSLOWER_s_marshal_load(VALUE klass, VALUE str)
     CLASSUPPER* a ;
     integer vsize ;
     integer hsize ;
-    char* p = (char*)RSTRING(str)->ptr ;
+    char* p = RSTRING_PTR(str) ;
 
     vsize = *((integer*)p) ;
     p += sizeof(integer) ;

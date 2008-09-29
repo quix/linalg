@@ -67,8 +67,8 @@ class TestEigensystem < Test::Unit::TestCase
             end
             
             eigs_c = DMatrix.new(2*dim, 2*dim)
-            eigs_list.each_with_index { |c, j|
-               eigs_c.replace_minor(0, 2*j, c)
+            eigs_list.each_with_index { |c, jj|
+               eigs_c.replace_minor(0, 2*jj, c)
             }
             
             assert_close(a_c*eigs_c, eigs_c*lambda_c)

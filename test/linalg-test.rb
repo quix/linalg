@@ -40,6 +40,18 @@ class Test::Unit::TestCase
          a.within(EPSILON, b)
       }
    end
+
+   if RUBY_VERSION >= '1.9.0'
+      def assert_nothing_raised
+         begin
+            yield
+         rescue => e
+            assert_block("raised in assert_nothing_raised: #{e.inspect}") {
+               false
+            }
+         end
+      end
+   end
 end
 
 $mat_f = DMatrix.rows [

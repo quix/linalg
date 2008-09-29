@@ -37,7 +37,7 @@ class TestNullspace < Test::Unit::TestCase
                end
                a.replace_column(c0, a.column(c1))
                ns2 = a.nullspace(EPSILON)
-               assert_not_nil(ns2)
+               refute_nil(ns2)
                assert_equal(ns2.hsize, 1)
                assert_equal(a.hsize, a.rank + a.nullity)
             end

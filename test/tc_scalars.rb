@@ -59,7 +59,7 @@ class TestScalars < Test::Unit::TestCase
          u = DMatrix.rand(t.vsize, 1)
          v = t.dot(u)
          w = 0.0 
-         t.each_index { |i, j| w += t[i]*u[i] }
+         t.each_index { |ii, jj| w += t[ii]*u[ii] }
          assert_close(v, w)
       }
    end

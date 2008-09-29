@@ -46,10 +46,16 @@ class Test::Unit::TestCase
          begin
             yield
          rescue => e
-            assert_block("raised in assert_nothing_raised: #{e.inspect}") {
+            assert_block("Exception raised:\n #{e.inspect}") {
                false
             }
+            return
          end
+         assert(true)
+      end
+
+      def assert_not_nil(*args, &block)
+         refute_nil(*args, &block)
       end
    end
 end

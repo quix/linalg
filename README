@@ -251,8 +251,6 @@ or simply pass an explicit epsilon to any of these methods.
 
 ==== Singular Value Decomposition
 
-And now the fun stuff <tt>  =)</tt>
-
   irb(main):000:0> a = DMatrix.rand(4, 7) ;
   irb(main):000:0* u, s, vt = a.singular_value_decomposition
   => [

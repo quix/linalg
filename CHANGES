@@ -1,6 +1,10 @@
 
 = Linalg Changes
 
+=== Version 1.0.1
+
+* 1.9 compatibility.
+
 === Version 1.0.0
 
 * Use g2c instead of f2c.  Contributed by Luis Parravicini.

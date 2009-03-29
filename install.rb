@@ -4,7 +4,7 @@ require 'fileutils'
 require 'rdoc/rdoc'
 require 'mkmf'
 
-LINALG_VERSION = "1.0.0"
+LINALG_VERSION = "1.0.1"
 
 DLEXT = Config::CONFIG["DLEXT"]
 

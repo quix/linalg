@@ -50,7 +50,7 @@ module Instantiator
 
       File.open(template[:src]) { |f|
          s = f.read
-         template[:change].each_pair { |before, after|
+         template[:change].each { |before, after|
             s.gsub!(%r!#{before}!m, after)
          }
          File.open(template[:dst], "w") { |out|
@@ -71,13 +71,13 @@ end
 ####################################################
 
 module InstantiateComplex
-   change = {
-      "doublecomplex" => "complex", 
-      "dcomplex" => "scomplex",
-      "doublereal" => "real",
-      "DCOMPLEX" => "SCOMPLEX",
-      "DComplex" => "SComplex",
-   }
+   change = [
+      ["doublecomplex", "complex"] ,
+      ["dcomplex", "scomplex"],
+      ["doublereal", "real"],
+      ["DCOMPLEX", "SCOMPLEX"],
+      ["DComplex", "SComplex"]
+   ]
    
    templates = [
       {
@@ -108,77 +108,77 @@ module InstantiateXData
    templates = [
       {
          :dst => "sdata.c",
-         :change => {
-            "doublereal" => "real", 
-            "DData" => "SData",
-            "ddata" => "sdata",
-            "DDATA" => "SDATA",
-         }
+         :change => [
+            ["doublereal", "real"], 
+            ["DData", "SData"],
+            ["ddata", "sdata"],
+            ["DDATA", "SDATA"],
+         ]
       },
       
       {
          :dst => "idata.c",
-         :change => {
-            "doublereal" => "integer", 
-            "rb_float_new" => "INT2NUM",
-            "DData" => "IData",
-            "ddata" => "idata",
-            "double" => "int",
-            "NUM2DBL" => "NUM2INT",
-            "DDATA" => "IDATA"
-         }
+         :change => [
+            ["doublereal", "integer"], 
+            ["rb_float_new", "INT2NUM"],
+            ["DData", "IData"],
+            ["ddata", "idata"],
+            ["double", "int"],
+            ["NUM2DBL", "NUM2INT"],
+            ["DDATA", "IDATA"]
+         ]
       },
       
       {
          :dst => "ldata.c",
-         :change => {
-            "doublereal" => "logical", 
-            "rb_float_new" => "INT2NUM",
-            "DData" => "LData",
-            "ddata" => "ldata",
-            "double" => "int",
-            "NUM2DBL" => "NUM2INT",
-            "DDATA" => "LDATA"
-         }
+         :change => [
+            ["doublereal", "logical"], 
+            ["rb_float_new", "INT2NUM"],
+            ["DData", "LData"],
+            ["ddata", "ldata"],
+            ["double", "int"],
+            ["NUM2DBL", "NUM2INT"],
+            ["DDATA", "LDATA"]
+         ]
       },
       
       {
          :dst => "chardata.c",
-         :change => {
-            "doublereal" => "char", 
-            "rb_float_new" => "INT2NUM",
-            "DData" => "CharData",
-            "ddata" => "chardata",
-            "double" => "int",
-            "NUM2DBL" => "*StringValuePtr",
-            "DDATA" => "CHARDATA"
-         }
+         :change => [
+            ["doublereal", "char"], 
+            ["rb_float_new", "INT2NUM"],
+            ["DData", "CharData"],
+            ["ddata", "chardata"],
+            ["double", "int"],
+            ["NUM2DBL", "*StringValuePtr"],
+            ["DDATA", "CHARDATA"]
+         ]
       },
       
       {
          :dst => "zdata.c",
-         :change => {
-            "doublereal" => "doublecomplex", 
-            "rb_float_new" => "rb_dcomplex_new",
-            "DData" => "ZData",
-            "ddata" => "zdata",
-            "\\(double\\)" => "",
-            "NUM2DBL" => "rb_num2doublecomplex",
-            "DDATA" => "ZDATA"
-         }
+         :change => [
+            ["doublereal", "doublecomplex"], 
+            ["rb_float_new", "rb_dcomplex_new"],
+            ["DData", "ZData"],
+            ["ddata", "zdata"],
+            ["\\(double\\)", ""],
+            ["NUM2DBL", "rb_num2doublecomplex"],
+            ["DDATA", "ZDATA"]
+         ]
       },
       
       {
          :dst => "cdata.c",
-         :change => {
-            "doublereal" => "complex", 
-            "rb_float_new" => "rb_scomplex_new",
-            "DData" => "CData",
-            "ddata" => "cdata",
-            "\\(double\\)" => "",
-            "NUM2DBL" => "rb_num2complex",
-            "DDATA" => "CDATA"
-         }
+         :change => [
+            ["doublereal", "complex"], 
+            ["rb_float_new", "rb_scomplex_new"],
+            ["DData", "CData"],
+            ["ddata", "cdata"],
+            ["\\(double\\)", ""],
+            ["NUM2DBL", "rb_num2complex"],
+            ["DDATA", "CDATA"]
+         ]
       },
    ]
 
@@ -196,57 +196,57 @@ end
 
 module InstantiateMatrices
 
-   real = {
-      "FORTRANTYPE" => "real", 
-      "CLASSUPPER" => "SMatrix", 
-      "CLASSLOWER" => "smatrix",
-      "RUBY2FORTRAN" => "NUM2DBL",
-      "FORTRAN2RUBY" => "rb_float_new",
-      "xcopy_" => "scopy_",
-      "xgemm_" => "sgemm_",
-      "xscal_" => "sscal_",
-      "xaxpy_" => "saxpy_",
-      "xdot_" => "sdot_",
-   }
+   real = [
+      ["FORTRANTYPE", "real"], 
+      ["CLASSUPPER", "SMatrix"], 
+      ["CLASSLOWER", "smatrix"],
+      ["RUBY2FORTRAN", "NUM2DBL"],
+      ["FORTRAN2RUBY", "rb_float_new"],
+      ["xcopy_", "scopy_"],
+      ["xgemm_", "sgemm_"],
+      ["xscal_", "sscal_"],
+      ["xaxpy_", "saxpy_"],
+      ["xdot_", "sdot_"],
+   ]
    
-   doublereal = {
-      "FORTRANTYPE" => "doublereal", 
-      "CLASSUPPER" => "DMatrix", 
-      "CLASSLOWER" => "dmatrix",
-      "RUBY2FORTRAN" => "NUM2DBL",
-      "FORTRAN2RUBY" => "rb_float_new",
-      "xcopy_" => "dcopy_",
-      "xgemm_" => "dgemm_",
-      "xscal_" => "dscal_",
-      "xaxpy_" => "daxpy_",
-      "xdot_" => "ddot_",
-   }
+   doublereal = [
+      ["FORTRANTYPE", "doublereal"], 
+      ["CLASSUPPER", "DMatrix"], 
+      ["CLASSLOWER", "dmatrix"],
+      ["RUBY2FORTRAN", "NUM2DBL"],
+      ["FORTRAN2RUBY", "rb_float_new"],
+      ["xcopy_", "dcopy_"],
+      ["xgemm_", "dgemm_"],
+      ["xscal_", "dscal_"],
+      ["xaxpy_", "daxpy_"],
+      ["xdot_", "ddot_"],
+   ]
    
-   complex = {
-      "FORTRANTYPE" => "complex", 
-      "CLASSUPPER" => "CMatrix", 
-      "CLASSLOWER" => "cmatrix",
-      "RUBY2FORTRAN" => "rb_num2complex",
-      "FORTRAN2RUBY" => "rb_scomplex_new",
-      "xcopy_" => "ccopy_",
-      "xgemm_" => "cgemm_",
-      "xscal_" => "cscal_",
-      "xaxpy_" => "caxpy_",
-      "xdotc_" => "cdotc_",
-   }
+   complex = [
+      ["FORTRANTYPE", "complex"], 
+      ["CLASSUPPER", "CMatrix"], 
+      ["CLASSLOWER", "cmatrix"],
+      ["RUBY2FORTRAN", "rb_num2complex"],
+      ["FORTRAN2RUBY", "rb_scomplex_new"],
+      ["xcopy_", "ccopy_"],
+      ["xgemm_", "cgemm_"],
+      ["xscal_", "cscal_"],
+      ["xaxpy_", "caxpy_"],
+      ["xdotc_", "cdotc_"],
+   ]
    
-   doublecomplex = {
-      "FORTRANTYPE" => "doublecomplex", 
-      "CLASSUPPER" => "ZMatrix", 
-      "CLASSLOWER" => "zmatrix",
-      "RUBY2FORTRAN" => "rb_num2doublecomplex",
-      "FORTRAN2RUBY" => "rb_dcomplex_new",
-      "xcopy_" => "zcopy_",
-      "xgemm_" => "zgemm_",
-      "xscal_" => "zscal_",
-      "xaxpy_" => "zaxpy_",
-      "xdotc_" => "zdotc_",
-   }
+   doublecomplex = [
+      ["FORTRANTYPE", "doublecomplex"], 
+      ["CLASSUPPER", "ZMatrix"], 
+      ["CLASSLOWER", "zmatrix"],
+      ["RUBY2FORTRAN", "rb_num2doublecomplex"],
+      ["FORTRAN2RUBY", "rb_dcomplex_new"],
+      ["xcopy_", "zcopy_"],
+      ["xgemm_", "zgemm_"],
+      ["xscal_", "zscal_"],
+      ["xaxpy_", "zaxpy_"],
+      ["xdotc_", "zdotc_"],
+   ]
    
    templates = [
       {

@@ -4,9 +4,8 @@
 # See LICENSE
 #
 
-require 'linalg-test'
+require_relative 'linalg-test'
 
 trap("INT") { exit(-1) }
-
 Dir["tc_*.rb"].sort.each { |f| require f }
 

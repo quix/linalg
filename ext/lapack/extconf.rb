@@ -272,7 +272,8 @@ module Main
    
    def config
       unless have_header("g2c.h") and
-            have_library("g2c") and
+            have_library("gfortran") and
+           # have_library("g2c") and
             have_library("blas") and
             have_library("lapack")
          puts "A full LAPACK installation was not found."

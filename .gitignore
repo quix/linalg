@@ -1,0 +1,46 @@
+# ignore native extensions build output
+mkmf.log
+Makefile
+*.o
+*.so
+
+# ignore editor temp files
+*.swp
+
+# ignore built gem
+*.gem
+
+# ignore generated docs
+doc/
+
+# ignore bundler output
+Gemfile.lock
+
+# ignore files generated from templates
+ext/lapack/rb_lapack_c.c
+ext/lapack/rb_lapack_d.c
+ext/lapack/rb_lapack_s.c
+ext/lapack/rb_lapack_x.c
+ext/lapack/rb_lapack_z.c
+ext/linalg/cdata.c
+ext/linalg/chardata.c
+ext/linalg/cmatrix.c
+ext/linalg/cmatrix.h
+ext/linalg/cmatrixc.c
+ext/linalg/dmatrix.c
+ext/linalg/dmatrix.h
+ext/linalg/dmatrixr.c
+ext/linalg/idata.c
+ext/linalg/ldata.c
+ext/linalg/scomplex.c
+ext/linalg/scomplex.h
+ext/linalg/sdata.c
+ext/linalg/smatrix.c
+ext/linalg/smatrix.h
+ext/linalg/smatrixr.c
+ext/linalg/zdata.c
+ext/linalg/zmatrix.c
+ext/linalg/zmatrix.h
+ext/linalg/zmatrixc.c
+
+

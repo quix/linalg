@@ -1,5 +1,5 @@
-require "linalg/linalg"
-require "linalg/lapack"
+require "linalg#{Config::CONFIG['DLEXT']}"
+require "lapack#{Config::CONFIG['DLEXT']}"
 require "linalg/dcomplex"
 require "linalg/dmatrix"
 require "linalg/exception"

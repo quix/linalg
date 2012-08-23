@@ -1,16 +1,9 @@
-#
-# Copyright (c) 2004-2008 by James M. Lawrence
-#
-# See LICENSE
-#
-
-require 'lapack'
-require 'linalg.so'
-require 'linalg/dmatrix'
-
-#
-# See the README file.
-#
-module Linalg
-end
-
+require "linalg.#{RbConfig::CONFIG['DLEXT']}"
+require "lapack.#{RbConfig::CONFIG['DLEXT']}"
+require "linalg/dcomplex"
+require "linalg/dmatrix"
+require "linalg/exception"
+require "linalg/iterators"
+require "linalg/math"
+require "linalg/scomplex"
+require "linalg/xdata"
